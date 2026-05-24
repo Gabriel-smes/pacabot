@@ -209,7 +209,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'http://localhost:3000/api';
+const API = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api' 
+  : 'https://pacabot.onrender.com/api';
 let products = [];
 let activeFilter = 'Todos';
 
