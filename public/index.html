@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PacaBot — Inventario</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28; --border:#2a2a3d;
+  --accent:#7c5cfc; --accent2:#fc5c7d; --green:#2ecc71; --yellow:#f1c40f;
+  --red:#e74c3c; --text:#e8e8f0; --muted:#6b6b8a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.header{background:linear-gradient(135deg,#1a0a2e,#0a0a1f);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.badge{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tab{padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.content{padding:16px;max-width:860px;margin:0 auto;}
+.section{display:none;}.section.active{display:block;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.search-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.search-box:focus-within{border-color:var(--accent);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;}
+.search-box input::placeholder{color:var(--muted);}
+.filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.filter-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.products{display:flex;flex-direction:column;gap:8px;}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;}
+.product-card:hover{border-color:var(--accent);background:var(--surface2);}
+.product-emoji{font-size:26px;width:40px;text-align:center;flex-shrink:0;}
+.product-info{flex:1;min-width:0;}
+.product-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.product-code{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.product-meta{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}
+.chip{font-size:10px;padding:2px 7px;border-radius:5px;font-family:'DM Mono',monospace;font-weight:500;}
+.chip-g{background:#0d2b1a;color:var(--green);}
+.chip-y{background:#2b1f0a;color:var(--yellow);}
+.chip-b{background:#0a1428;color:#5b9cf6;}
+.chip-r{background:#2b0a0a;color:var(--red);}
+.product-stock{text-align:right;flex-shrink:0;}
+.stock-num{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.stock-label{font-size:10px;color:var(--muted);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;animation:slideUp 0.3s ease;position:relative;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.modal-emoji{font-size:44px;text-align:center;margin-bottom:10px;}
+.modal-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px;}
+.modal-code{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-bottom:18px;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.modal-stat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.modal-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.modal-stat-label{font-size:10px;color:var(--muted);margin-top:3px;}
+.green{color:var(--green)}.yellow{color:var(--yellow)}.blue{color:#5b9cf6}.red-c{color:var(--red)}
+.margin-bar-wrap{margin-bottom:16px;}
+.margin-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.margin-bar{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.margin-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.8s ease;}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted);}
+.qr-box{background:white;border-radius:12px;padding:16px;display:inline-block;margin:12px auto;display:block;text-align:center;}
+.qr-box img{max-width:180px;}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+.form-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.form-input,.form-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+.form-select option{background:var(--surface2);}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-danger{background:#2b0a0a;color:var(--red);border:1px solid var(--red);margin-top:8px;}
+.btn-row{display:flex;gap:8px;margin-bottom:8px;}
+.btn-half{flex:1;}
+.chat-container{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.chat-header{background:#075e54;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.chat-avatar{width:34px;height:34px;background:#25d366;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.chat-name{font-weight:600;font-size:13px;}
+.chat-status{font-size:10px;opacity:0.7;}
+.chat-messages{padding:14px;min-height:180px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:#0d1117;}
+.msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:12px;line-height:1.5;}
+.msg-user{background:#005c4b;align-self:flex-end;border-radius:12px 12px 2px 12px;}
+.msg-bot{background:var(--surface2);align-self:flex-start;border-radius:12px 12px 12px 2px;border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;}
+.msg-time{font-size:9px;opacity:0.5;margin-top:3px;text-align:right;}
+.chat-input-row{padding:10px;display:flex;gap:8px;background:var(--surface);border-top:1px solid var(--border);}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:9px 14px;color:var(--text);font-size:12px;outline:none;font-family:'DM Sans',sans-serif;}
+.chat-send{width:38px;height:38px;background:#25d366;border:none;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0;}
+.loading{text-align:center;padding:40px;color:var(--muted);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);border:1px solid var(--accent);border-radius:10px;padding:10px 18px;font-size:12px;z-index:300;transition:transform 0.3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.empty{text-align:center;padding:36px 16px;color:var(--muted);}
+.section-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:14px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">📦 PacaBot</div>
+  <div class="badge" id="serverBadge">conectando...</div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('inventario',this)">📋 Inventario</button>
+  <button class="tab" onclick="showTab('bot',this)">🤖 Bot</button>
+  <button class="tab" onclick="showTab('agregar',this)">➕ Agregar</button>
+</div>
+
+<!-- INVENTARIO -->
+<div id="inventario" class="section active content">
+  <div class="stats" id="statsRow"><div class="loading"><div class="spinner"></div></div></div>
+  <div class="search-box">
+    <span style="color:var(--muted)">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar producto o código..." oninput="renderProducts()">
+  </div>
+  <div class="filter-row" id="filterRow"></div>
+  <div id="productList" class="products"></div>
+</div>
+
+<!-- BOT -->
+<div id="bot" class="section content">
+  <div class="section-title">🤖 Bot de Inventario</div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Conectado al servidor real. Escribe ZAP001, LISTA, STOCK, TOTAL o BUSCAR [nombre].</p>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chat-avatar">🤖</div>
+      <div><div class="chat-name">PacaBot</div><div class="chat-status">● conectado al servidor</div></div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg msg-bot">👋 Hola! Soy PacaBot conectado a tu servidor real.<br><br>Escribe un código como <b>ZAP001</b> o comandos: <b>LISTA · STOCK · TOTAL · AYUDA</b><div class="msg-time">ahora</div></div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Escribe código o comando..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="chat-send" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGREGAR -->
+<div id="agregar" class="section content">
+  <div class="form-card">
+    <div class="form-title">➕ Nuevo producto</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" id="fCat" onchange="genCode()">
+          <option value="👟">👟 Zapatillas</option>
+          <option value="👕">👕 Ropa</option>
+          <option value="📱">📱 Tecnología</option>
+          <option value="💄">💄 Cosméticos</option>
+          <option value="👜">👜 Accesorios</option>
+          <option value="💡">💡 Hogar/Otros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Código (auto)</label>
+        <input class="form-input" id="fCode" readonly style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label class="form-label">Nombre del producto</label>
+        <input class="form-input" id="fName" placeholder="Ej: Zapatilla Nike blanca T38">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio compra (S/)</label>
+        <input class="form-input" id="fCompra" type="number" placeholder="0" oninput="calcG()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio venta (S/)</label>
+        <input class="form-input" id="fVenta" type="number" placeholder="0" oninput="calcG()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Stock inicial</label>
+        <input class="form-input" id="fStock" type="number" placeholder="1" value="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ganancia estimada</label>
+        <input class="form-input" id="fGanancia" readonly style="color:var(--green);font-family:'DM Mono',monospace;font-size:12px">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addProduct()">✅ Guardar producto</button>
+    <div id="saveStatus" style="text-align:center;font-size:12px;margin-top:8px;color:var(--muted)"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let products = [];
+let activeFilter = 'Todos';
+
+// ─── INIT ─────────────────────────────────────────────
+async function init() {
+  await checkServer();
+  await loadProducts();
+  genCode();
+}
+
+async function checkServer() {
+  try {
+    const r = await fetch(`${API}/status`);
+    const d = await r.json();
+    document.getElementById('serverBadge').textContent = `✅ ${d.productos} productos`;
+    document.getElementById('serverBadge').style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('serverBadge').textContent = '❌ Sin servidor';
+    document.getElementById('serverBadge').style.color = 'var(--red)';
+  }
+}
+
+async function loadProducts() {
+  try {
+    const r = await fetch(`${API}/products`);
+    const d = await r.json();
+    products = d.data || [];
+    renderAll();
+  } catch(e) {
+    document.getElementById('productList').innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>No se pudo conectar al servidor</p></div>';
+  }
+}
+
+// ─── TABS ─────────────────────────────────────────────
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'inventario') loadProducts();
+  if (id === 'agregar') genCode();
+}
+
+// ─── RENDER ───────────────────────────────────────────
+function renderAll() { renderStats(); renderFilters(); renderProducts(); }
+
+async function renderStats() {
+  try {
+    const r = await fetch(`${API}/resumen`);
+    const d = await r.json();
+    const { totalProductos, totalUnidades, gananciaTotal } = d.data;
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat"><div class="stat-val">${totalProductos}</div><div class="stat-label">Productos</div></div>
+      <div class="stat"><div class="stat-val">${totalUnidades}</div><div class="stat-label">Unidades</div></div>
+      <div class="stat"><div class="stat-val">S/${gananciaTotal}</div><div class="stat-label">Gan. potencial</div></div>`;
+  } catch(e) {}
+}
+
+function catName(cat) {
+  return {'👟':'Zapatos','👕':'Ropa','📱':'Tecno','💄':'Cosméticos','👜':'Accesorios','💡':'Hogar'}[cat]||'Otros';
+}
+
+function renderFilters() {
+  const cats = ['Todos', ...new Set(products.map(p => p.categoria + ' ' + catName(p.categoria)))];
+  document.getElementById('filterRow').innerHTML = cats.map(c =>
+    `<button class="filter-btn ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setFilter(f) { activeFilter = f; renderFilters(); renderProducts(); }
+
+function renderProducts() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  let list = [...products];
+  if (activeFilter !== 'Todos') list = list.filter(p => (p.categoria+' '+catName(p.categoria))===activeFilter);
+  if (q) list = list.filter(p => p.nombre.toLowerCase().includes(q)||p.id.toLowerCase().includes(q));
+  if (!list.length) {
+    document.getElementById('productList').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No se encontraron productos</p></div>';
+    return;
+  }
+  document.getElementById('productList').innerHTML = list.map(p => {
+    const gan = Number(p.venta)-Number(p.compra);
+    const pct = Math.round((gan/Number(p.venta))*100);
+    const sn = Number(p.stock);
+    const stockChip = sn<=1?`<span class="chip chip-r">⚠️ Stock bajo</span>`:sn>=5?`<span class="chip chip-g">✅ OK</span>`:`<span class="chip chip-y">📦 ${sn}uds</span>`;
+    return `<div class="product-card" onclick="openModal('${p.id}')">
+      <div class="product-emoji">${p.categoria}</div>
+      <div class="product-info">
+        <div class="product-name">${p.nombre}</div>
+        <div class="product-code">${p.id}</div>
+        <div class="product-meta">
+          <span class="chip chip-b">S/${p.venta}</span>
+          <span class="chip chip-g">+S/${gan}(${pct}%)</span>
+          ${stockChip}
+        </div>
+      </div>
+      <div class="product-stock"><div class="stock-num">${sn}</div><div class="stock-label">stock</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── MODAL ────────────────────────────────────────────
+async function openModal(id) {
+  const r = await fetch(`${API}/products/${id}`);
+  const d = await r.json();
+  const p = d.data;
+  const sn = Number(p.stock);
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-emoji">${p.categoria}</div>
+    <div class="modal-name">${p.nombre}</div>
+    <div class="modal-code">${p.id}</div>
+    <div class="modal-grid">
+      <div class="modal-stat"><div class="modal-stat-val yellow">S/${p.compra}</div><div class="modal-stat-label">Compra</div></div>
+      <div class="modal-stat"><div class="modal-stat-val blue">S/${p.venta}</div><div class="modal-stat-label">Venta</div></div>
+      <div class="modal-stat"><div class="modal-stat-val green">S/${p.ganancia}</div><div class="modal-stat-label">Ganancia</div></div>
+      <div class="modal-stat"><div class="modal-stat-val ${sn<=1?'red-c':'green'}">${sn}</div><div class="modal-stat-label">Stock</div></div>
+    </div>
+    <div class="margin-bar-wrap">
+      <div class="margin-bar-label"><span>Margen</span><span style="color:var(--accent)">${p.porcentaje}%</span></div>
+      <div class="margin-bar"><div class="margin-bar-fill" style="width:${p.porcentaje}%"></div></div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
+      💰 Ganancia en stock: <b style="color:var(--green)">S/${p.ganancia*sn}</b><br>
+      📦 Inversión: <b style="color:var(--yellow)">S/${Number(p.compra)*sn}</b>
+    </div>
+    <div class="qr-box" id="qrBox"><div class="spinner"></div></div>
+    <div class="btn-row" style="margin-bottom:8px">
+      <button class="btn btn-primary btn-half" onclick="updateStock('${id}',-1)">➖ Vender</button>
+      <button class="btn btn-primary btn-half" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)" onclick="updateStock('${id}',1)">➕ Añadir</button>
+    </div>
+    <button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+  loadQR(id);
+}
+
+async function loadQR(id) {
+  try {
+    const r = await fetch(`${API}/qr/${id}`);
+    const d = await r.json();
+    document.getElementById('qrBox').innerHTML = `<img src="${d.qr}" alt="QR ${id}"><p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px">${id}</p>`;
+  } catch(e) {}
+}
+
+async function updateStock(id, delta) {
+  await fetch(`${API}/products/${id}/stock`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({delta}) });
+  await loadProducts();
+  openModal(id);
+  showToast(delta>0?'✅ Stock actualizado':'💰 Venta registrada');
+}
+
+async function deleteProduct(id) {
+  if (!confirm('¿Eliminar este producto?')) return;
+  await fetch(`${API}/products/${id}`, { method:'DELETE' });
+  closeModalDirect();
+  await loadProducts();
+  showToast('🗑️ Producto eliminado');
+}
+
+function closeModal(e) { if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// ─── AGREGAR ──────────────────────────────────────────
+function genCode() {
+  const cat = document.getElementById('fCat').value;
+  const prefix = {'👟':'ZAP','👕':'ROP','📱':'TEC','💄':'COS','👜':'ACC','💡':'HOG'}[cat]||'PRO';
+  const count = products.filter(p=>p.categoria===cat).length+1;
+  document.getElementById('fCode').value = prefix+String(count).padStart(3,'0');
+}
+
+function calcG() {
+  const c = parseFloat(document.getElementById('fCompra').value)||0;
+  const v = parseFloat(document.getElementById('fVenta').value)||0;
+  const g = v-c, pct = v>0?Math.round((g/v)*100):0;
+  document.getElementById('fGanancia').value = g>0?`S/${g} (${pct}%)`:'';
+}
+
+async function addProduct() {
+  const nombre = document.getElementById('fName').value.trim();
+  const compra = parseFloat(document.getElementById('fCompra').value);
+  const venta = parseFloat(document.getElementById('fVenta').value);
+  const stock = parseInt(document.getElementById('fStock').value)||1;
+  const categoria = document.getElementById('fCat').value;
+  const id = document.getElementById('fCode').value;
+  if (!nombre||!compra||!venta) { showToast('⚠️ Completa todos los campos'); return; }
+  if (venta<=compra) { showToast('⚠️ Precio venta debe ser mayor al de compra'); return; }
+  const status = document.getElementById('saveStatus');
+  status.textContent = '💾 Guardando...';
+  try {
+    await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock}) });
+    ['fName','fCompra','fVenta'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('fStock').value='1';
+    document.getElementById('fGanancia').value='';
+    await loadProducts();
+    genCode();
+    status.textContent='✅ Guardado correctamente';
+    status.style.color='var(--green)';
+    showToast('✅ Producto guardado');
+    setTimeout(()=>status.textContent='',3000);
+  } catch(e) { status.textContent='❌ Error al guardar'; }
+}
+
+// ─── BOT ──────────────────────────────────────────────
+async function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value='';
+  addMsg(msg,'user');
+  try {
+    const r = await fetch(`${API}/bot`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) });
+    const d = await r.json();
+    addMsg(d.reply,'bot');
+  } catch(e) { addMsg('❌ Error conectando al servidor','bot'); }
+}
+
+function addMsg(text, type) {
+  const box = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = `msg msg-${type}`;
+  d.innerHTML = text.replace(/\n/g,'<br>') + `<div class="msg-time">ahora</div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ─── TOAST ────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+init();
+</script>
+</body>
+</html>
