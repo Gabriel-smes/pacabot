@@ -16,14 +16,7 @@ app.use(express.static('public'));
 const SHEETS_API = process.env.SHEETS_API || '';
 
 // ─── PRODUCTOS EN MEMORIA (fallback sin Sheets) ─────────
-let products = [
-  { id:'ZAP001', nombre:'Zapatilla Nike blanca T38', categoria:'👟', compra:25, venta:45, stock:3 },
-  { id:'ZAP002', nombre:'Zapatilla Adidas rosada T37', categoria:'👟', compra:22, venta:40, stock:1 },
-  { id:'TEC001', nombre:'Audifono rosado YOS', categoria:'📱', compra:8, venta:20, stock:5 },
-  { id:'TEC002', nombre:'Parlante Bluetooth rojo', categoria:'📱', compra:12, venta:30, stock:2 },
-  { id:'COS001', nombre:'Set cosmeticos rosado', categoria:'💄', compra:6, venta:15, stock:6 },
-  { id:'HOG001', nombre:'Foldable Push Up Board', categoria:'💡', compra:10, venta:25, stock:2 },
-];
+let products = [];
 
 // ─── HELPER: obtener ganancia ────────────────────────────
 function getGanancia(p) {
