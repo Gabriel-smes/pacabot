@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PacaBot — Inventario</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 :root {
@@ -193,6 +194,24 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <input class="form-input" id="fGanancia" readonly style="color:var(--green);font-family:'DM Mono',monospace;font-size:12px">
       </div>
     </div>
+    <div class="form-row">
+  <div class="form-group full">
+    <label class="form-label">Descripción del producto</label>
+    <input class="form-input" id="fDesc" placeholder="Ej: Zapatilla blanca talla 38, buen estado">
+  </div>
+</div>
+<div class="form-row">
+  <div class="form-group full">
+    <label class="form-label">URL de foto (pega link de imagen)</label>
+    <input class="form-input" id="fFoto" placeholder="https://...">
+  </div>
+</div>
+<div class="form-row">
+  <div class="form-group full">
+    <label class="form-label">URL modelo 3D opcional (.glb)</label>
+    <input class="form-input" id="fModelo" placeholder="https://... .glb">
+  </div>
+</div>
     <button class="btn btn-primary" onclick="addProduct()">✅ Guardar producto</button>
     <div id="saveStatus" style="text-align:center;font-size:12px;margin-top:8px;color:var(--muted)"></div>
   </div>
@@ -319,10 +338,34 @@ async function openModal(id) {
   const d = await r.json();
   const p = d.data;
   const sn = Number(p.stock);
+  
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-emoji">${p.categoria}</div>
     <div class="modal-name">${p.nombre}</div>
     <div class="modal-code">${p.id}</div>
+
+    ${p.foto ? `
+    <div style="margin-bottom:14px">
+      <img src="${p.foto}" alt="${p.nombre}" 
+        style="width:100%;height:200px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+    </div>` : ''}
+
+    ${p.modelo3d ? `
+    <div style="margin-bottom:14px">
+      <model-viewer 
+        src="${p.modelo3d}"
+        alt="${p.nombre}"
+        auto-rotate
+        camera-controls
+        style="width:100%;height:220px;border-radius:12px;border:1px solid var(--border);background:var(--surface2)">
+      </model-viewer>
+    </div>` : ''}
+
+    ${p.descripcion ? `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--text);line-height:1.6">
+      📝 ${p.descripcion}
+    </div>` : ''}
+
     <div class="modal-grid">
       <div class="modal-stat"><div class="modal-stat-val yellow">S/${p.compra}</div><div class="modal-stat-label">Compra</div></div>
       <div class="modal-stat"><div class="modal-stat-val blue">S/${p.venta}</div><div class="modal-stat-label">Venta</div></div>
@@ -343,6 +386,7 @@ async function openModal(id) {
       <button class="btn btn-primary btn-half" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)" onclick="updateStock('${id}',1)">➕ Añadir</button>
     </div>
     <button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>`;
+
   document.getElementById('modalOverlay').classList.add('open');
   loadQR(id);
 }
@@ -395,13 +439,16 @@ async function addProduct() {
   const stock = parseInt(document.getElementById('fStock').value)||1;
   const categoria = document.getElementById('fCat').value;
   const id = document.getElementById('fCode').value;
+  const descripcion = document.getElementById('fDesc').value.trim();
+  const foto = document.getElementById('fFoto').value.trim();
+  const modelo3d = document.getElementById('fModelo').value.trim();
   if (!nombre||!compra||!venta) { showToast('⚠️ Completa todos los campos'); return; }
   if (venta<=compra) { showToast('⚠️ Precio venta debe ser mayor al de compra'); return; }
   const status = document.getElementById('saveStatus');
   status.textContent = '💾 Guardando...';
   try {
-    await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock}) });
-    ['fName','fCompra','fVenta'].forEach(x=>document.getElementById(x).value='');
+    await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
+    ['fName','fCompra','fVenta','fDesc','fFoto','fModelo'].forEach(x=>document.getElementById(x).value='');
     document.getElementById('fStock').value='1';
     document.getElementById('fGanancia').value='';
     await loadProducts();

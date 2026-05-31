@@ -16,7 +16,41 @@ app.use(express.static('public'));
 const SHEETS_API = process.env.SHEETS_API || '';
 
 // ─── PRODUCTOS EN MEMORIA (fallback sin Sheets) ─────────
-let products = [];
+let products = [
+  {
+    id: 'ZAP001',
+    nombre: 'Zapatilla Nike Air blanca',
+    categoria: '👟',
+    compra: 25,
+    venta: 45,
+    stock: 3,
+    descripcion: 'Zapatilla deportiva blanca talla 38, ideal para uso diario. Buen estado general.',
+    foto: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
+    modelo3d: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
+  },
+  {
+    id: 'TEC001',
+    nombre: 'Audifono Bluetooth rosado',
+    categoria: '📱',
+    compra: 8,
+    venta: 20,
+    stock: 5,
+    descripcion: 'Audífonos inalámbricos rosados con batería de 3 horas. Funcionan perfecto.',
+    foto: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+    modelo3d: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
+  },
+  {
+    id: 'COS001',
+    nombre: 'Set cosméticos rosado',
+    categoria: '💄',
+    compra: 6,
+    venta: 15,
+    stock: 6,
+    descripcion: 'Set completo de maquillaje rosado. Incluye labial, sombras y base.',
+    foto: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400',
+    modelo3d: null
+  }
+];
 
 // ─── HELPER: obtener ganancia ────────────────────────────
 function getGanancia(p) {
@@ -67,12 +101,11 @@ app.get('/api/products/:id', (req, res) => {
 
 // Agregar producto
 app.post('/api/products', async (req, res) => {
-  const { id, nombre, categoria, compra, venta, stock } = req.body;
+  const { id, nombre, categoria, compra, venta, stock, descripcion, foto, modelo3d } = req.body;
   if (!id || !nombre || !compra || !venta) {
     return res.status(400).json({ success: false, mensaje: 'Faltan campos obligatorios' });
   }
-  const nuevo = { id: id.toUpperCase(), nombre, categoria: categoria || '📦', compra: Number(compra), venta: Number(venta), stock: Number(stock) || 1 };
-  products.push(nuevo);
+const nuevo = { id: id.toUpperCase(), nombre, categoria: categoria || '📦', compra: Number(compra), venta: Number(venta), stock: Number(stock) || 1, descripcion: descripcion || '', foto: foto || '', modelo3d: modelo3d || '' };  products.push(nuevo);
   if (SHEETS_API) {
     await axios.post(SHEETS_API, { action: 'add', product: nuevo }).catch(() => {});
   }
