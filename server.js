@@ -138,7 +138,8 @@ app.delete('/api/products/:id', async (req, res) => {
 app.get('/api/qr/:id', async (req, res) => {
   const id = req.params.id.toUpperCase();
   try {
-    const qr = await QRCode.toDataURL(id, { margin: 2, scale: 8 });
+const baseUrl = process.env.BASE_URL || 'https://pacabot.onrender.com';
+const qr = await QRCode.toDataURL(`${baseUrl}/producto/${id}`, { margin: 2, scale: 8 });
     res.json({ success: true, id, qr });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
@@ -146,6 +147,10 @@ app.get('/api/qr/:id', async (req, res) => {
 });
 
 // Resumen del inventario
+// ─── PÁGINA PÚBLICA DEL PRODUCTO ────────────────────────
+app.get('/producto/:id', (req, res) => {
+  res.sendFile(__dirname + '/public/producto.html');
+});
 app.get('/api/resumen', (req, res) => {
   const totalProductos = products.length;
   const totalUnidades = products.reduce((a, p) => a + Number(p.stock), 0);
