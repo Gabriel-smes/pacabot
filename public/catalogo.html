@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PacaBot — Catálogo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28; --border:#2a2a3d;
+  --accent:#7c5cfc; --accent2:#fc5c7d; --green:#2ecc71; --yellow:#f1c40f;
+  --red:#e74c3c; --text:#e8e8f0; --muted:#6b6b8a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.header{background:linear-gradient(135deg,#1a0a2e,#0a0a1f);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.badge{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--muted);}
+.content{padding:16px;max-width:860px;margin:0 auto;}
+.search-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.search-box:focus-within{border-color:var(--accent);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;}
+.search-box input::placeholder{color:var(--muted);}
+.filter-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:600px){.products{grid-template-columns:repeat(3,1fr);}}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.2s;}
+.product-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.product-img{width:100%;height:140px;object-fit:cover;}
+.product-emoji{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--surface2);}
+.product-info{padding:10px;}
+.product-name{font-weight:600;font-size:12px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.product-code{font-size:10px;color:var(--muted);margin-bottom:6px;}
+.product-meta{display:flex;justify-content:space-between;align-items:center;}
+.product-price{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#5b9cf6;}
+.product-stock{font-size:10px;padding:2px 6px;border-radius:4px;}
+.stock-ok{background:#0d2b1a;color:var(--green);}
+.stock-low{background:#2b1f0a;color:var(--yellow);}
+.stock-out{background:#2b0a0a;color:var(--red);}
+.loading{text-align:center;padding:60px;color:var(--muted);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;animation:slideUp 0.3s ease;position:relative;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.close-btn{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted);}
+.modal-img{width:100%;height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--border);margin-bottom:14px;}
+.modal-emoji{font-size:44px;text-align:center;margin-bottom:10px;}
+.modal-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:4px;}
+.modal-code{font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;}
+.modal-desc{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text);line-height:1.6;margin-bottom:14px;}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.modal-stat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.modal-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.modal-stat-label{font-size:10px;color:var(--muted);margin-top:3px;}
+.btn-wa{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border:none;border-radius:12px;background:#25d366;color:white;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:8px;transition:all 0.2s;}
+.btn-wa:hover{opacity:0.9;}
+.footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">📦 PacaBot</div>
+  <div class="badge">Catálogo público</div>
+</div>
+
+<div class="content">
+  <div class="stats" id="statsRow">
+    <div class="stat"><div class="stat-val">...</div><div class="stat-label">Productos</div></div>
+    <div class="stat"><div class="stat-val">...</div><div class="stat-label">Disponibles</div></div>
+  </div>
+
+  <div class="search-box">
+    <span style="color:var(--muted)">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar producto..." oninput="renderProducts()">
+  </div>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <div id="productList" class="products">
+    <div class="loading" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      <p>Cargando catálogo...</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Powered by PacaBot · Sistema de inventario inteligente
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const WA_NUMBER = '51937580454';
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000/api'
+  : 'https://pacabot.onrender.com/api';
+
+let products = [];
+let activeFilter = 'Todos';
+
+function catName(cat) {
+  return {'👟':'Zapatos','👕':'Ropa','📱':'Tecno','💄':'Cosméticos','👜':'Accesorios','💡':'Hogar'}[cat]||'Otros';
+}
+
+async function init() {
+  try {
+    const r = await fetch(`${API}/products`);
+    const d = await r.json();
+    products = (d.data || []).filter(p => Number(p.stock) > 0);
+    renderStats();
+    renderFilters();
+    renderProducts();
+  } catch(e) {
+    document.getElementById('productList').innerHTML = '<div class="empty" style="grid-column:1/-1">❌ No se pudo cargar el catálogo</div>';
+  }
+}
+
+function renderStats() {
+  const total = products.length;
+  const disponibles = products.filter(p => Number(p.stock) > 0).length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-label">Productos</div></div>
+    <div class="stat"><div class="stat-val">${disponibles}</div><div class="stat-label">Disponibles</div></div>`;
+}
+
+function renderFilters() {
+  const cats = ['Todos', ...new Set(products.map(p => p.categoria + ' ' + catName(p.categoria)))];
+  document.getElementById('filterRow').innerHTML = cats.map(c =>
+    `<button class="filter-btn ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setFilter(f) { activeFilter = f; renderFilters(); renderProducts(); }
+
+function renderProducts() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  let list = [...products];
+  if (activeFilter !== 'Todos') list = list.filter(p => (p.categoria+' '+catName(p.categoria))===activeFilter);
+  if (q) list = list.filter(p => (p.nombre||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q));
+
+  if (!list.length) {
+    document.getElementById('productList').innerHTML = '<div class="empty" style="grid-column:1/-1">🔍 No se encontraron productos</div>';
+    return;
+  }
+
+  document.getElementById('productList').innerHTML = list.map(p => {
+    const sn = Number(p.stock);
+    const stockClass = sn <= 0 ? 'stock-out' : sn <= 2 ? 'stock-low' : 'stock-ok';
+    const stockText = sn <= 0 ? 'Agotado' : sn <= 2 ? 'Últimas unidades' : 'Disponible';
+    const media = p.foto
+      ? `<img src="${p.foto}" alt="${p.nombre}" class="product-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const emoji = `<div class="product-emoji" ${p.foto ? 'style="display:none"' : ''}>${p.categoria}</div>`;
+
+    return `<div class="product-card" onclick="openModal('${p.id}')">
+      ${media}${emoji}
+      <div class="product-info">
+        <div class="product-name">${p.nombre}</div>
+        <div class="product-code">${p.id}</div>
+        <div class="product-meta">
+          <div class="product-price">S/${p.venta}</div>
+          <div class="product-stock ${stockClass}">${stockText}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openModal(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  const sn = Number(p.stock);
+  const stockClass = sn <= 0 ? 'red-c' : sn <= 2 ? 'yellow' : 'green';
+  const msg = encodeURIComponent(`Hola! Vi el producto *${p.nombre}* (${p.id}) en el catálogo y me interesa. ¿Está disponible?`);
+
+  document.getElementById('modalBody').innerHTML = `
+    ${p.foto ? `<img src="${p.foto}" alt="${p.nombre}" class="modal-img">` : `<div class="modal-emoji">${p.categoria}</div>`}
+    <div class="modal-name">${p.nombre}</div>
+    <div class="modal-code">Código: ${p.id} · ${p.categoria}</div>
+    ${p.descripcion ? `<div class="modal-desc">📝 ${p.descripcion}</div>` : ''}
+    <div class="modal-stats">
+      <div class="modal-stat">
+        <div class="modal-stat-val" style="color:#5b9cf6">S/${p.venta}</div>
+        <div class="modal-stat-label">Precio</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-val ${stockClass}">${sn}</div>
+        <div class="modal-stat-label">Stock disponible</div>
+      </div>
+    </div>
+    <a href="https://wa.me/${WA_NUMBER}?text=${msg}" target="_blank" class="btn-wa">
+      💬 Consultar por WhatsApp
+    </a>`;
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) { if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+init();
+</script>
+</body>
+</html>

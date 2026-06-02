@@ -148,6 +148,9 @@ const qr = await QRCode.toDataURL(`${baseUrl}/producto/${id}`, { margin: 2, scal
 
 // Resumen del inventario
 // ─── PÁGINA PÚBLICA DEL PRODUCTO ────────────────────────
+app.get('/catalogo', (req, res) => {
+  res.sendFile(__dirname + '/public/catalogo.html');
+});
 app.get('/producto/:id', (req, res) => {
   res.sendFile(__dirname + '/public/producto.html');
 });
