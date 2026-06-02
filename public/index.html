@@ -380,8 +380,9 @@ async function openModal(id) {
       💰 Ganancia en stock: <b style="color:var(--green)">S/${p.ganancia*sn}</b><br>
       📦 Inversión: <b style="color:var(--yellow)">S/${Number(p.compra)*sn}</b>
     </div>
-    <div class="qr-box" id="qrBox"><div class="spinner"></div></div>
-    <div class="btn-row" style="margin-bottom:8px">
+<button onclick="toggleQR()" id="btnQR" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-bottom:8px">📲 Ver código QR</button>
+<div class="qr-box" id="qrBox" style="display:none"><div class="spinner"></div></div>
+<div class="btn-row" style="margin-bottom:8px">
       <button class="btn btn-primary btn-half" onclick="updateStock('${id}',-1)">➖ Vender</button>
       <button class="btn btn-primary btn-half" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)" onclick="updateStock('${id}',1)">➕ Añadir</button>
     </div>
@@ -397,6 +398,14 @@ async function loadQR(id) {
     const d = await r.json();
     document.getElementById('qrBox').innerHTML = `<img src="${d.qr}" alt="QR ${id}"><p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px">${id}</p>`;
   } catch(e) {}
+}
+function toggleQR() {
+  const qr = document.getElementById('qrBox');
+  const btn = document.getElementById('btnQR');
+  if (!qr) return;
+  const visible = qr.style.display !== 'none';
+  qr.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '📲 Ver código QR' : '🙈 Ocultar QR';
 }
 
 async function updateStock(id, delta) {
@@ -440,7 +449,7 @@ async function addProduct() {
   const categoria = document.getElementById('fCat').value;
   const id = document.getElementById('fCode').value;
   const descripcion = document.getElementById('fDesc').value.trim();
-  const foto = document.getElementById('fFoto').value.trim();
+  
   const modelo3d = document.getElementById('fModelo').value.trim();
   if (!nombre||!compra||!venta) { showToast('⚠️ Completa todos los campos'); return; }
   if (venta<=compra) { showToast('⚠️ Precio venta debe ser mayor al de compra'); return; }
