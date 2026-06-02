@@ -107,7 +107,29 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </style>
 </head>
 <body>
-<div class="header">
+<!-- LOGIN -->
+<div id="loginScreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--bg)">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:48px;margin-bottom:12px">📦</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">PacaBot</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px">Sistema de inventario inteligente</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Contraseña</div>
+      <input type="password" id="loginInput" placeholder="Ingresa tu contraseña"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:14px;outline:none;font-family:'DM Sans',sans-serif;margin-bottom:12px"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="doLogin()" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer">
+        Entrar
+      </button>
+      <div id="loginError" style="text-align:center;font-size:12px;color:var(--red);margin-top:10px;display:none">
+        ❌ Contraseña incorrecta
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="header">
   <div class="logo">📦 PacaBot</div>
   <div class="badge" id="serverBadge">conectando...</div>
 </div>
@@ -367,9 +389,9 @@ async function openModal(id) {
     </div>` : ''}
 
     <div class="modal-grid">
-      <div class="modal-stat"><div class="modal-stat-val yellow">S/${p.compra}</div><div class="modal-stat-label">Compra</div></div>
-      <div class="modal-stat"><div class="modal-stat-val blue">S/${p.venta}</div><div class="modal-stat-label">Venta</div></div>
-      <div class="modal-stat"><div class="modal-stat-val green">S/${p.ganancia}</div><div class="modal-stat-label">Ganancia</div></div>
+      ${userRol === 'admin' ? `<div class="modal-stat"><div class="modal-stat-val yellow">S/${p.compra}</div><div class="modal-stat-label">Compra</div></div>` : ''}
+<div class="modal-stat"><div class="modal-stat-val blue">S/${p.venta}</div><div class="modal-stat-label">Venta</div></div>
+${userRol === 'admin' ? `<div class="modal-stat"><div class="modal-stat-val green">S/${p.ganancia}</div><div class="modal-stat-label">Ganancia</div></div>` : ''}
       <div class="modal-stat"><div class="modal-stat-val ${sn<=1?'red-c':'green'}">${sn}</div><div class="modal-stat-label">Stock</div></div>
     </div>
     <div class="margin-bar-wrap">
@@ -493,6 +515,56 @@ function addMsg(text, type) {
 }
 
 // ─── TOAST ────────────────────────────────────────────
+// ─── LOGIN ────────────────────────────────────────────
+let userRol = null;
+
+async function doLogin() {
+  const pass = document.getElementById('loginInput').value.trim();
+  if (!pass) return;
+  try {
+    const r = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ password: pass })
+    });
+    const d = await r.json();
+    if (d.success) {
+      userRol = d.rol;
+      localStorage.setItem('pacabot_rol', userRol);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.querySelector('.header').style.display = 'flex';
+      document.querySelector('.tabs').style.display = 'flex';
+      applyRol();
+      init();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function applyRol() {
+  if (userRol === 'admin') return;
+  
+  if (userRol !== 'autorizado') {
+    document.querySelectorAll('.tab').forEach(t => {
+      if (t.textContent.includes('Agregar')) t.style.display = 'none';
+    });
+  }
+}
+
+// Verificar si ya hay sesión guardada
+const savedRol = localStorage.getItem('pacabot_rol');
+if (savedRol) {
+  userRol = savedRol;
+  document.getElementById('loginScreen').style.display = 'none';
+  applyRol();
+} else {
+  document.querySelector('.header').style.display = 'none';
+  document.querySelector('.tabs').style.display = 'none';
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;

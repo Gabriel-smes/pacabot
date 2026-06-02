@@ -10,6 +10,20 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// ─── SISTEMA DE ROLES ────────────────────────────────────
+const ADMIN_PASS = process.env.ADMIN_PASS || 'SELECCIONAR';
+const AUTH_PASS = process.env.AUTH_PASS || 'INCORRECTO';
+
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASS) {
+    res.json({ success: true, rol: 'admin' });
+  } else if (password === AUTH_PASS) {
+    res.json({ success: true, rol: 'autorizado' });
+  } else {
+    res.json({ success: false, mensaje: 'Contraseña incorrecta' });
+  }
+});
 app.use(express.static('public'));
 
 // ─── TU GOOGLE SHEETS API URL ───────────────────────────
