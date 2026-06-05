@@ -31,39 +31,7 @@ const SHEETS_API = process.env.SHEETS_API || '';
 
 // ─── PRODUCTOS EN MEMORIA (fallback sin Sheets) ─────────
 let products = [
-  {
-    id: 'ZAP001',
-    nombre: 'Zapatilla Nike Air blanca',
-    categoria: '👟',
-    compra: 25,
-    venta: 45,
-    stock: 3,
-    descripcion: 'Zapatilla deportiva blanca talla 38, ideal para uso diario. Buen estado general.',
-    foto: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-    modelo3d: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
-  },
-  {
-    id: 'TEC001',
-    nombre: 'Audifono Bluetooth rosado',
-    categoria: '📱',
-    compra: 8,
-    venta: 20,
-    stock: 5,
-    descripcion: 'Audífonos inalámbricos rosados con batería de 3 horas. Funcionan perfecto.',
-    foto: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-    modelo3d: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
-  },
-  {
-    id: 'COS001',
-    nombre: 'Set cosméticos rosado',
-    categoria: '💄',
-    compra: 6,
-    venta: 15,
-    stock: 6,
-    descripcion: 'Set completo de maquillaje rosado. Incluye labial, sombras y base.',
-    foto: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400',
-    modelo3d: null
-  }
+  
 ];
 
 // ─── HELPER: obtener ganancia ────────────────────────────
