@@ -30,9 +30,7 @@ app.use(express.static('public'));
 const SHEETS_API = process.env.SHEETS_API || '';
 
 // ─── PRODUCTOS EN MEMORIA (fallback sin Sheets) ─────────
-let products = [
-  
-];
+let products = [];
 
 // ─── HELPER: obtener ganancia ────────────────────────────
 function getGanancia(p) {
@@ -43,12 +41,13 @@ function getGanancia(p) {
 
 // ─── SINCRONIZAR CON GOOGLE SHEETS ──────────────────────
 async function syncFromSheets() {
+  return;
   if (!SHEETS_API) return;
   try {
     const res = await axios.get(`${SHEETS_API}?action=get`);
-    if (res.data.success && res.data.data.length > 0) {
-      products = res.data.data;
-      console.log(`✅ Sincronizado: ${products.length} productos desde Sheets`);
+if (res.data && res.data.data && res.data.data.length > 0) {
+if (res.data.data.length > 0) if (res.data.data.length > 0) products = res.data.data;
+  console.log(`✅ Sincronizado: ${products.length} productos desde Sheets`);
     }
   } catch (e) {
     console.log('⚠️ Sin conexión a Sheets, usando datos locales');
