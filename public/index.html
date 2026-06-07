@@ -131,7 +131,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
   <div class="header">
   <div class="logo">VELO Store</div>
-  <div class="badge" id="serverBadge">conectando...</div>
+  
+ 
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="badge" id="serverBadge">conectando...</div>
+    <button onclick="logout()" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;">🚪 Salir</button>
+  </div>
 </div>
 <div class="tabs">
   <button class="tab active" onclick="showTab('inventario',this)">📋 Inventario</button>
@@ -594,6 +599,15 @@ if (savedRol) {
   document.querySelector('.tabs').style.display = 'none';
 }
 
+function logout() {
+  localStorage.removeItem('pacabot_rol');
+  userRol = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.querySelector('.header').style.display = 'none';
+  document.querySelector('.tabs').style.display = 'none';
+  document.getElementById('loginInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
