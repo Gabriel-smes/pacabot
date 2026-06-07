@@ -394,21 +394,21 @@ async function openModal(id) {
 ${userRol === 'admin' ? `<div class="modal-stat"><div class="modal-stat-val green">S/${p.ganancia}</div><div class="modal-stat-label">Ganancia</div></div>` : ''}
       <div class="modal-stat"><div class="modal-stat-val ${sn<=1?'red-c':'green'}">${sn}</div><div class="modal-stat-label">Stock</div></div>
     </div>
-    <div class="margin-bar-wrap">
+    ${userRol === 'admin' ? `<div class="margin-bar-wrap">
       <div class="margin-bar-label"><span>Margen</span><span style="color:var(--accent)">${p.porcentaje}%</span></div>
       <div class="margin-bar"><div class="margin-bar-fill" style="width:${p.porcentaje}%"></div></div>
     </div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7">
       💰 Ganancia en stock: <b style="color:var(--green)">S/${p.ganancia*sn}</b><br>
       📦 Inversión: <b style="color:var(--yellow)">S/${Number(p.compra)*sn}</b>
-    </div>
+    </div>` : ''}
 <button onclick="toggleQR()" id="btnQR" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-bottom:8px">📲 Ver código QR</button>
 <div class="qr-box" id="qrBox" style="display:none"><div class="spinner"></div></div>
 <div class="btn-row" style="margin-bottom:8px">
       <button class="btn btn-primary btn-half" onclick="updateStock('${id}',-1)">➖ Vender</button>
       <button class="btn btn-primary btn-half" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)" onclick="updateStock('${id}',1)">➕ Añadir</button>
     </div>
-    <button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>`;
+    <button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>`
 
   document.getElementById('modalOverlay').classList.add('open');
   loadQR(id);
@@ -477,6 +477,7 @@ const descripcion = document.getElementById('fDesc').value.trim();
   if (venta<=compra) { showToast('⚠️ Precio venta debe ser mayor al de compra'); return; }
   const status = document.getElementById('saveStatus');
 status.textContent = '💾 Guardando...';
+  document.querySelector('.btn-primary[onclick="addProduct()"]').disabled = true;
     console.log('Enviando:', {id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d});
   try {
     await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
@@ -489,6 +490,7 @@ status.textContent = '💾 Guardando...';
     showToast('✅ Producto guardado');
     setTimeout(()=>status.textContent='',3000);
 } catch(e) { status.textContent='❌ Error al guardar'; console.log('ERROR:', e); }
+  document.querySelector('.btn-primary[onclick="addProduct()"]').disabled = false;
   }
 
 // ─── BOT ──────────────────────────────────────────────

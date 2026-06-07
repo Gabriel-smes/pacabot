@@ -41,7 +41,6 @@ function getGanancia(p) {
 
 // ─── SINCRONIZAR CON GOOGLE SHEETS ──────────────────────
 async function syncFromSheets() {
-  return;
   if (!SHEETS_API) return;
   try {
     const res = await axios.get(`${SHEETS_API}?action=get`);
