@@ -300,7 +300,7 @@ function showTab(id, el) {
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
   if (id === 'inventario') loadProducts();
-  if (id === 'agregar') genCode();
+ if (id === 'agregar') { genCode(); calcG(); }
 }
 
 // ─── RENDER ───────────────────────────────────────────
