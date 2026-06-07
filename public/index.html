@@ -613,6 +613,36 @@ function logout() {
   document.getElementById('loginInput').value = '';
   document.getElementById('loginError').style.display = 'none';
 }
+
+async function openEdit(id) {
+  const r = await fetch(`${API}/products/${id}`);
+  const d = await r.json();
+  const p = d.data;
+  closeModalDirect();
+  document.getElementById('fCat').value = p.categoria;
+  document.getElementById('fName').value = p.nombre;
+  document.getElementById('fCompra').value = p.compra;
+  document.getElementById('fVenta').value = p.venta;
+  document.getElementById('fStock').value = p.stock;
+  document.getElementById('fDesc').value = p.descripcion || '';
+  document.getElementById('fFoto').value = p.foto || '';
+  document.getElementById('fModelo').value = p.modelo3d || '';
+  document.getElementById('fCode').value = p.id;
+  calcG();
+  showTab('agregar', document.querySelector('.tab:nth-child(3)'));
+  showToast('Editando — guarda para actualizar');
+}
+
+function logout() {
+  localStorage.removeItem('pacabot_rol');
+  userRol = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.querySelector('.header').style.display = 'none';
+  document.querySelector('.tabs').style.display = 'none';
+  document.getElementById('loginInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
