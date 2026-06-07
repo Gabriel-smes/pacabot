@@ -415,8 +415,8 @@ ${userRol === 'admin' ? `<div class="modal-stat"><div class="modal-stat-val gree
       <button class="btn btn-primary btn-half" onclick="updateStock('${id}',-1)">➖ Vender</button>
       <button class="btn btn-primary btn-half" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)" onclick="updateStock('${id}',1)">➕ Añadir</button>
     </div>
-    <button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>`
-
+<button class="btn btn-danger" onclick="deleteProduct('${id}')">🗑️ Eliminar</button>
+    <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);margin-top:8px" onclick="openEdit('${id}')">Editar</button>`
   document.getElementById('modalOverlay').classList.add('open');
   loadQR(id);
 }
