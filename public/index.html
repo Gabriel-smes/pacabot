@@ -481,7 +481,13 @@ status.textContent = '💾 Guardando...';
     console.log('Enviando:', {id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d});
   try {
     await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
-  document.getElementById('fStock').value='1';
+document.getElementById('fStock').value='1';
+    document.getElementById('fName').value='';
+    document.getElementById('fCompra').value='';
+    document.getElementById('fVenta').value='';
+    document.getElementById('fDesc').value='';
+    document.getElementById('fFoto').value='';
+    document.getElementById('fModelo').value='';
     document.getElementById('fGanancia').value='';
     await loadProducts();
     genCode();
@@ -489,6 +495,7 @@ status.textContent = '💾 Guardando...';
     status.style.color='var(--green)';
     showToast('✅ Producto guardado');
     setTimeout(()=>status.textContent='',3000);
+    document.querySelector('.btn-primary[onclick="addProduct()"]').disabled = false;
 } catch(e) { status.textContent='❌ Error al guardar'; console.log('ERROR:', e); }
   document.querySelector('.btn-primary[onclick="addProduct()"]').disabled = false;
   }
