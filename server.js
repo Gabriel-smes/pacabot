@@ -92,6 +92,19 @@ const nuevo = { id: id.toUpperCase(), nombre, categoria: categoria || '📦', co
   res.json({ success: true, mensaje: 'Producto agregado', data: nuevo });
 });
 
+// Actualizar producto completo
+app.put('/api/products/:id', async (req, res) => {
+  const id = req.params.id.toUpperCase();
+  const idx = products.findIndex(x => x.id === id);
+  if (idx === -1) return res.status(404).json({ success: false, mensaje: 'Producto no encontrado' });
+  const { nombre, categoria, compra, venta, stock, descripcion, foto, modelo3d } = req.body;
+  products[idx] = { ...products[idx], nombre, categoria, compra: Number(compra), venta: Number(venta), stock: Number(stock), descripcion: descripcion||'', foto: foto||'', modelo3d: modelo3d||'' };
+  if (SHEETS_API) {
+    await axios.post(SHEETS_API, { action: 'update', product: products[idx] }).catch(() => {});
+  }
+  res.json({ success: true, mensaje: 'Producto actualizado', data: products[idx] });
+});
+
 // Actualizar stock
 app.patch('/api/products/:id/stock', async (req, res) => {
   const p = products.find(x => x.id === req.params.id.toUpperCase());

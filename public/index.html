@@ -508,8 +508,13 @@ status.textContent = '💾 Guardando...';
   document.querySelector('.btn-primary[onclick="addProduct()"]').disabled = true;
     console.log('Enviando:', {id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d});
   try {
-    await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
-document.getElementById('fStock').value='1';
+if (window._editingId) {
+      await fetch(`${API}/products/${window._editingId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
+      window._editingId = null;
+    } else {
+      await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,nombre,categoria,compra,venta,stock,descripcion,foto,modelo3d}) });
+    }
+    document.getElementById('fStock').value='1';
     document.getElementById('fName').value='';
     document.getElementById('fCompra').value='';
     document.getElementById('fVenta').value='';
@@ -615,6 +620,7 @@ function logout() {
 }
 
 async function openEdit(id) {
+  window._editingId = id;
   const r = await fetch(`${API}/products/${id}`);
   const d = await r.json();
   const p = d.data;
