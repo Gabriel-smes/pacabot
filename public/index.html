@@ -459,8 +459,13 @@ function closeModalDirect() { document.getElementById('modalOverlay').classList.
 function genCode() {
   const cat = document.getElementById('fCat').value;
   const prefix = {'👟':'ZAP','👕':'ROP','📱':'TEC','💄':'COS','👜':'ACC','💡':'HOG'}[cat]||'PRO';
-  const count = products.filter(p=>p.categoria===cat).length+1;
-  document.getElementById('fCode').value = prefix+String(count).padStart(3,'0');
+  let count = products.filter(p=>p.categoria===cat).length+1;
+  let code = prefix+String(count).padStart(3,'0');
+  while(products.find(p=>p.id===code)) {
+    count++;
+    code = prefix+String(count).padStart(3,'0');
+  }
+  document.getElementById('fCode').value = code;
 }
 
 async function subirFoto(input) {
